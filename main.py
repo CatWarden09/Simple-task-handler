@@ -116,7 +116,7 @@ def select_range_end(range_start):
         return select_range_end(range_start)
 
 
-def select_process_range():
+def select_process_termination_range():
     range_start = select_range_start()
     range_end = select_range_end(range_start)
     terminate_selected_process(range_start, range_end)
@@ -149,13 +149,39 @@ def terminate_selected_process(range_start, range_end):
         show_commands()
 
 
+def select_process_start_range():
+    range_start = select_range_start()
+    range_end = select_range_end(range_start)
+    start_selected_process(range_start, range_end)
+
+
+def start_selected_process(range_start, range_end):
+    path = FOLDER
+    exe = "Telegram.exe"
+    start_range = []
+    folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
+
+    print("Folder counter", folders_counter)
+
+    for i in range(range_start, range_end + 1):
+        start_range.append(i)
+
+    for k in range(1, folders_counter + 1):
+        index = str(k)
+        exe_path = os.path.join(path, index, exe)
+        folder_name = os.path.basename(os.path.dirname(exe_path))
+        try:
+            if int(folder_name) in start_range:
+                subprocess.Popen(exe_path)
+        except FileNotFoundError:
+            continue
+
+
 def start_process():
     path = FOLDER
     exe = "Telegram.exe"
 
-    folders_counter = len(next(os.walk(FOLDER))[1]) - 1
-
-    # - 1 for main account
+    folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
     print("Folder counter", folders_counter)
     for i in range(1, folders_counter + 1):
         index = str(i)
@@ -177,7 +203,7 @@ def show_commands():
     print("2. Показать список процессов")
     print("3. Завершить процессы выборочно")
     print("4. Запустить все процессы")
-    print("5. Запустить процессы выборочно🚧")
+    print("5. Запустить процессы выборочно")
     print("6. Закрыть все активные окна TG🚧")
     print("0. Выход")
     input_command()
@@ -191,13 +217,16 @@ def input_command():
         case "2":
             list_process()
         case "3":
-            select_process_range()
+            select_process_termination_range()
         case "4":
             start_process()
+        case "5":
+            select_process_start_range()
         case "0":
             exit
         case _:
-            print("Неверная команда!", "************", "", sep="\n")
+            print("Неверная команда!")
+            print_stars()
             show_commands()
 
 
