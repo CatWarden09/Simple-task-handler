@@ -56,14 +56,16 @@ def terminate_process():
 def list_process():
     process_counter: int = 0
     process_name_found: bool = False
-    process_name = ""
+    process_name = "Telegram.exe"
+    folders = []
     for proc in psutil.process_iter():
         try:
             path = proc.exe()
             if FOLDER in path:
-                print(path)
+                # print(path)
                 process_counter += 1
-
+                folder_name = os.path.basename(os.path.dirname(path))
+                folders.append(int(folder_name))
                 if not process_name_found:
                     process_name = proc.name()
                     process_name_found = True
@@ -82,6 +84,14 @@ def list_process():
         print("Процессы не запущены.")
         print_stars()
     process_counter = 0
+    folders.sort()
+
+    for k in range(len(folders)):
+
+        process_path = os.path.join(FOLDER, str(folders[k]), process_name)
+        print(process_path)
+    print(folders)
+
     show_commands()
 
 
@@ -175,6 +185,10 @@ def start_selected_process(range_start, range_end):
                 subprocess.Popen(exe_path)
         except FileNotFoundError:
             continue
+
+    print("Запускаем процессы в выбранном диапазоне...")
+    print_stars()
+    show_commands()
 
 
 def start_process():
