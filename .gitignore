@@ -1,1 +1,5 @@
 .env
+icon.ico
+/build/
+/dist/
+main.spec
