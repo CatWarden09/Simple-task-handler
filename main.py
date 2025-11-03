@@ -177,7 +177,7 @@ def start_selected_process(range_start, range_end):
     path = FOLDER
     exe = "Telegram.exe"
     start_range = []
-    folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
+    folders_counter = len(next(os.walk(FOLDER))[1])
 
     # print("Folder counter", folders_counter)
 
@@ -204,7 +204,7 @@ def start_process():
     path = FOLDER
     exe = "Telegram.exe"
 
-    folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
+    folders_counter = len(next(os.walk(FOLDER))[1])
     # print("Folder counter", folders_counter)
     for i in range(1, folders_counter + 1):
         index = str(i)
