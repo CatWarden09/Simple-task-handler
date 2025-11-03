@@ -5,9 +5,11 @@ import pywinauto as pw
 
 from dotenv import load_dotenv
 
+if getattr(sys, "frozen", False):
+    script_dir = os.path.dirname(sys.executable) # for exe version
+else:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# script_dir = os.path.dirname(sys.executable) # for final version
-script_dir = os.path.dirname(os.path.abspath(__file__))
 env_path = os.path.join(script_dir, ".env")
 
 
