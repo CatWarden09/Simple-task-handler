@@ -6,7 +6,7 @@ import pywinauto as pw
 from dotenv import load_dotenv
 
 if getattr(sys, "frozen", False):
-    script_dir = os.path.dirname(sys.executable) # for exe version
+    script_dir = os.path.dirname(sys.executable)  # for exe version
 else:
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -46,10 +46,12 @@ def terminate_process():
         except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
             continue
     if not process_found:
+        print_stars()
         print("Процессы не запущены.")
         print_stars()
         show_commands()
     else:
+        print_stars()
         print("Все процессы завершены.")
         print_stars()
         show_commands()
@@ -78,11 +80,13 @@ def list_process():
             continue
     if process_counter > 0:
         print_stars()
+        print("Список запущенных процессов:")
         folders.sort()
         for k in range(len(folders)):
 
             process_path = os.path.join(FOLDER, str(folders[k]), process_name)
             print(process_path)
+        print_stars()
         print("Запущено ", process_counter, process_name)
         print_stars()
 
@@ -152,10 +156,12 @@ def terminate_selected_process(range_start, range_end):
         except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
             continue
     if not process_found:
+        print_stars()
         print("Процессы в указанном диапазоне не запущены.")
         print_stars()
         show_commands()
     else:
+        print_stars()
         print("Процессы в выбранном диапазоне завершены.")
         print_stars()
         show_commands()
@@ -173,7 +179,7 @@ def start_selected_process(range_start, range_end):
     start_range = []
     folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
 
-    print("Folder counter", folders_counter)
+    # print("Folder counter", folders_counter)
 
     for i in range(range_start, range_end + 1):
         start_range.append(i)
@@ -188,6 +194,7 @@ def start_selected_process(range_start, range_end):
         except FileNotFoundError:
             continue
 
+    print_stars()
     print("Запускаем процессы в выбранном диапазоне...")
     print_stars()
     show_commands()
@@ -198,7 +205,7 @@ def start_process():
     exe = "Telegram.exe"
 
     folders_counter = len(next(os.walk(FOLDER))[1]) - 1  # - 1 for main account
-    print("Folder counter", folders_counter)
+    # print("Folder counter", folders_counter)
     for i in range(1, folders_counter + 1):
         index = str(i)
         exe_path = os.path.join(path, index, exe)
@@ -208,25 +215,42 @@ def start_process():
             continue
 
     else:
+        print_stars()
         print("Запускаем все процессы...")
         print_stars()
         show_commands()
 
 
 def close_all_windows():
-    apps = pw.Desktop(backend="win32").windows(class_name="Qt51517QWindowIcon")
-    for app in apps:
-        app.close()
+    apps = pw.Desktop(backend="win32").windows(
+        class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
+    )
+    # print(apps)
+    if len(apps) == 0:
+        print_stars()
+        print("Активные окна TG не найдены.")
+
+    else:
+        for app in apps:
+            if app.is_visible():
+                app.close()
+            else:
+                continue
+
+        print_stars()
+        print("Закрываем все активные окна TG...")
+    print_stars()
+    show_commands()
 
 
 def show_commands():
     print("Введите команду:")
-    print("1. Завершить все процессы")
-    print("2. Показать список процессов")
-    print("3. Завершить процессы выборочно")
-    print("4. Запустить все процессы")
-    print("5. Запустить процессы выборочно")
-    print("6. Закрыть все активные окна TG🚧")
+    print("1. Запустить все процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ ПК!")
+    print("2. Завершить все процессы")
+    print("3. Запустить процессы выборочно")
+    print("4. Завершить процессы выборочно")
+    print("5. Показать список процессов")
+    print("6. Закрыть все активные окна TG")
     print("0. Выход")
     input_command()
 
@@ -235,15 +259,15 @@ def input_command():
     cmd = input()
     match cmd:
         case "1":
-            terminate_process()
-        case "2":
-            list_process()
-        case "3":
-            select_process_termination_range()
-        case "4":
             start_process()
-        case "5":
+        case "2":
+            terminate_process()
+        case "3":
             select_process_start_range()
+        case "4":
+            select_process_termination_range()
+        case "5":
+            list_process()
         case "6":
             close_all_windows()
         case "0":
