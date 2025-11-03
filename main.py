@@ -1,9 +1,9 @@
 import psutil
 import os, sys
 import subprocess
-from dotenv import load_dotenv
+import pywinauto as pw
 
-# pywin32, subprocess
+from dotenv import load_dotenv
 
 
 # script_dir = os.path.dirname(sys.executable) # for final version
@@ -76,6 +76,11 @@ def list_process():
             continue
     if process_counter > 0:
         print_stars()
+        folders.sort()
+        for k in range(len(folders)):
+
+            process_path = os.path.join(FOLDER, str(folders[k]), process_name)
+            print(process_path)
         print("Запущено ", process_counter, process_name)
         print_stars()
 
@@ -84,13 +89,8 @@ def list_process():
         print("Процессы не запущены.")
         print_stars()
     process_counter = 0
-    folders.sort()
 
-    for k in range(len(folders)):
-
-        process_path = os.path.join(FOLDER, str(folders[k]), process_name)
-        print(process_path)
-    print(folders)
+    # print(folders)
 
     show_commands()
 
@@ -211,6 +211,12 @@ def start_process():
         show_commands()
 
 
+def close_all_windows():
+    apps = pw.Desktop(backend="win32").windows(class_name="Qt51517QWindowIcon")
+    for app in apps:
+        app.close()
+
+
 def show_commands():
     print("Введите команду:")
     print("1. Завершить все процессы")
@@ -236,6 +242,8 @@ def input_command():
             start_process()
         case "5":
             select_process_start_range()
+        case "6":
+            close_all_windows()
         case "0":
             exit
         case _:
