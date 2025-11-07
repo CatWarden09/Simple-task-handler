@@ -243,6 +243,72 @@ def close_all_windows():
     show_commands()
 
 
+def start_single_process():
+    path = FOLDER
+    exe = "Telegram.exe"
+
+    print("Укажите номер процесса для запуска")
+
+    try:
+        index = int(input())
+        if index <= 0:
+            print("ОШИБКА: неверный номер процесса!")
+            start_single_process()
+        else:
+            exe_path = os.path.join(path, str(index), exe)
+            # print(exe_path)
+            subprocess.Popen(exe_path)
+            print_stars()
+            print("Запускаем процесс под номером ", index, "...", sep="")
+            print_stars()
+            show_commands()
+    except ValueError:
+        print("ОШИБКА: указанное значение не является числом!")
+        start_single_process()
+    except FileNotFoundError:
+        print("ОШИБКА: процесс с указанным номером не найден!")
+        start_single_process()
+
+
+def terminate_single_process():
+    process_found: bool = False
+    path = FOLDER
+
+    print("Укажите номер процесса для завершения")
+    try:
+        index = int(input())
+        if index <= 0:
+            print("ОШИБКА: Неверный номер процесса!")
+            terminate_single_process()
+        else:
+            for proc in psutil.process_iter():
+                try:
+                    path = proc.exe()
+                    folder_name = os.path.basename(os.path.dirname(path))
+                    # print(folder_name)
+                    if FOLDER in path and int(folder_name) == index:
+                        if proc.is_running():
+                            proc.terminate()
+                            process_found = True
+                except (
+                    psutil.AccessDenied,
+                    psutil.NoSuchProcess,
+                    psutil.ZombieProcess,
+                ):
+                    continue
+    except ValueError:
+        print("ОШИБКА: указанное значение не является числом!")
+        terminate_single_process()
+    if not process_found:
+        print("ОШИБКА! Процесс с указанным номером не найден!")
+        terminate_single_process()
+    else:
+        print_stars()
+        print("Процесс под номером", index, "завершен")
+        print_stars()
+        show_commands()
+
+
 def show_commands():
     print("Введите команду:")
     print("1. Запустить все процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
@@ -251,6 +317,8 @@ def show_commands():
     print("4. Завершить процессы выборочно")
     print("5. Показать список процессов")
     print("6. Закрыть все активные окна")
+    print("7. Запустить выбранный процесс")
+    print("8. Завершить выбранный процесс")
     print("0. Выход")
     input_command()
 
@@ -270,6 +338,10 @@ def input_command():
             list_process()
         case "6":
             close_all_windows()
+        case "7":
+            start_single_process()
+        case "8":
+            terminate_single_process()
         case "0":
             exit
         case _:
