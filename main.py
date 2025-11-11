@@ -27,6 +27,7 @@ except FileNotFoundError:
 
 load_dotenv()
 FOLDER = os.getenv("FOLDER")
+SKIP_MARK = os.getenv("SKIP_MARK")
 
 
 def print_stars():
@@ -69,6 +70,11 @@ def list_process():
                 # print(path)
                 process_counter += 1
                 folder_name = os.path.basename(os.path.dirname(path))
+                if (
+                    SKIP_MARK in folder_name
+                ):  # хотфикс для исключаемых папок, которые уже запущены, без этого условия программа падает,
+                    # т.к. не может перевести в int название папки (нужно вручную прописать ключ в env)
+                    continue
                 folders.append(int(folder_name))
                 if not process_name_found:
                     process_name = proc.name()
@@ -83,7 +89,6 @@ def list_process():
         print("Список запущенных процессов:")
         folders.sort()
         for k in range(len(folders)):
-
             process_path = os.path.join(FOLDER, str(folders[k]), process_name)
             print(process_path)
         print_stars()
