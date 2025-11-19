@@ -5,7 +5,7 @@ import pywinauto as pw
 
 from dotenv import load_dotenv
 
-VERSION = "1.2.2"
+VERSION = "0.2.2"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
