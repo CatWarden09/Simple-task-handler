@@ -276,42 +276,48 @@ def start_single_process():
 
 
 def terminate_single_process():
-    process_found: bool = False
-    path = FOLDER
+    while True:
+        process_found: bool = False
+        path = FOLDER
 
-    print("Укажите номер процесса для завершения")
-    try:
-        index = int(input())
-        if index <= 0:
-            print("ОШИБКА: Неверный номер процесса!")
-            terminate_single_process()
+        print("Укажите номер процесса для завершения")
+        try:
+            raw = input()
+            print("DEBUG RAW:", repr(raw))
+            index = int(raw)
+            # index = int(input())
+            if index <= 0:
+                print("ОШИБКА: Неверный номер процесса!")
+                continue
+            else:
+                for proc in psutil.process_iter():
+                    try:
+                        path = proc.exe()
+                        folder_name = os.path.basename(os.path.dirname(path))
+                        # print(folder_name)
+                        if FOLDER in path and int(folder_name) == index:
+                            if proc.is_running():
+                                proc.terminate()
+                                process_found = True
+                    except (
+                        psutil.AccessDenied,
+                        psutil.NoSuchProcess,
+                        psutil.ZombieProcess,
+                        ValueError,
+                    ):
+                        continue
+        except ValueError:
+            print("ОШИБКА: указанное значение не является числом!")
+            continue
+        if not process_found:
+            print("ОШИБКА! Процесс с указанным номером не найден!")
+            continue
         else:
-            for proc in psutil.process_iter():
-                try:
-                    path = proc.exe()
-                    folder_name = os.path.basename(os.path.dirname(path))
-                    # print(folder_name)
-                    if FOLDER in path and int(folder_name) == index:
-                        if proc.is_running():
-                            proc.terminate()
-                            process_found = True
-                except (
-                    psutil.AccessDenied,
-                    psutil.NoSuchProcess,
-                    psutil.ZombieProcess,
-                ):
-                    continue
-    except ValueError:
-        print("ОШИБКА: указанное значение не является числом!")
-        terminate_single_process()
-    if not process_found:
-        print("ОШИБКА! Процесс с указанным номером не найден!")
-        terminate_single_process()
-    else:
-        print_stars()
-        print("Процесс под номером", index, "завершен")
-        print_stars()
-        show_commands()
+            print_stars()
+            print("Процесс под номером", index, "завершен")
+            print_stars()
+            show_commands()
+            break
 
 
 def show_commands():
