@@ -5,6 +5,8 @@ import pywinauto as pw
 
 from dotenv import load_dotenv
 
+VERSION = "1.2.2"
+
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
 else:
@@ -379,4 +381,6 @@ def input_command():
                 print_stars()
 
 
+print("|||||||||||||||||||||||||||||||||||||||")
+print("Simple Task Handler v", VERSION, sep="")
 input_command()
