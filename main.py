@@ -295,10 +295,10 @@ def terminate_single_process():
 
         print("Укажите номер процесса для завершения")
         try:
-            raw = input()
-            print("DEBUG RAW:", repr(raw))
-            index = int(raw)
-            # index = int(input())
+            # raw = input()
+            # print("DEBUG RAW:", repr(raw))
+            # index = int(raw)
+            index = int(input())
             if index <= 0:
                 print("ОШИБКА: Неверный номер процесса!")
                 continue
