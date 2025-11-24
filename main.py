@@ -6,7 +6,7 @@ import pywinauto as pw
 from dotenv import load_dotenv
 from pywinauto import timings
 
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
