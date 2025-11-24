@@ -4,6 +4,7 @@ import subprocess
 import pywinauto as pw
 
 from dotenv import load_dotenv
+from pywinauto import timings
 
 VERSION = "0.2.2"
 
@@ -239,6 +240,7 @@ def start_process():
 
 def close_all_windows():
     while True:
+        is_timeout: bool = False
         apps = pw.Desktop(backend="win32").windows(
             class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
         )
@@ -249,13 +251,23 @@ def close_all_windows():
 
         else:
             for app in apps:
-                if app.is_visible():
-                    app.close()
+                try:
+                    if app.is_visible():
+                        app.close()
+                except timings.TimeoutError:
+                    is_timeout = True
+                    continue
                 else:
                     continue
 
             print_stars()
             print("Закрываем все активные окна...")
+            if is_timeout:
+                print("______________________________________________________")
+                print("")
+                print("Внимание! Некоторые окна не были закрыты из-за ошибки!")
+                print("Возможно, программа не может получить доступ к окну.")
+                print("______________________________________________________")
         print_stars()
         break
 
