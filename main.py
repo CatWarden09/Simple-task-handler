@@ -118,7 +118,6 @@ def list_process():
             new_skipped_folders.append(new_folder_name)
 
         new_skipped_folders.sort()
-        # нужно доработать сортировку для skipped-папок, сейчас не работает
         for k in range(len(folders)):
             process_path = os.path.join(FOLDER, str(folders[k]), process_name)
             print(process_path)
