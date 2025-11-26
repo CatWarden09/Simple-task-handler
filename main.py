@@ -76,6 +76,7 @@ def list_process():
         process_name_found: bool = False
         process_name = EXE
         folders = []
+        skipped_folders = []
         for proc in psutil.process_iter():
             try:
                 path = proc.exe()
@@ -83,12 +84,12 @@ def list_process():
                     # print(path)
                     process_counter += 1
                     folder_name = os.path.basename(os.path.dirname(path))
-                    if (
-                        SKIP_MARK in folder_name
-                    ):  # хотфикс для исключаемых папок, которые уже запущены, без этого условия программа падает,
-                        # т.к. не может перевести в int название папки (нужно вручную прописать ключ в env)
+                    if SKIP_MARK in folder_name:
+                        # создаем отдельный массив для исключаемых папок, т.к. нельзя смешивать сортировку str и int
+                        skipped_folders.append(folder_name)
                         continue
                     folders.append(int(folder_name))
+                    # перевод в int нужен для последующей сортировки массива и красивого отображения списка процессов по возрастанию номеров
                     if not process_name_found:
                         process_name = proc.name()
                         process_name_found = True
@@ -101,8 +102,14 @@ def list_process():
             print_stars()
             print("Список запущенных процессов:")
             folders.sort()
+            skipped_folders.sort()
             for k in range(len(folders)):
                 process_path = os.path.join(FOLDER, str(folders[k]), process_name)
+                print(process_path)
+            for l in range(len(skipped_folders)):
+                process_path = os.path.join(
+                    FOLDER, str(skipped_folders[l]), process_name
+                )
                 print(process_path)
             print_stars()
             print("Запущено ", process_counter, process_name)
