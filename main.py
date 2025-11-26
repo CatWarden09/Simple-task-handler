@@ -4,6 +4,7 @@ import subprocess
 import pywinauto as pw
 
 from dotenv import load_dotenv
+from pywinauto import timings
 
 VERSION = "0.3.2"
 
@@ -265,21 +266,35 @@ def start_process():
 
 
 def close_all_windows():
-    apps = pw.Desktop(backend="win32").windows(
-        class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
-    )
-    # print(apps)
-    if len(apps) == 0:
-        print_stars()
-        print("Активные окна не найдены.")
+    while True:
+        is_timeout: bool = False
+        apps = pw.Desktop(backend="win32").windows(
+            class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
+        )
+        # print(apps)
+        if len(apps) == 0:
+            print_stars()
+            print("Активные окна не найдены.")
 
-    else:
-        for app in apps:
-            if app.is_visible():
-                app.close()
-            else:
-                continue
+        else:
+            for app in apps:
+                try:
+                    if app.is_visible():
+                        app.close()
+                except timings.TimeoutError:
+                    is_timeout = True
+                    continue
+                else:
+                    continue
 
+            print_stars()
+            print("Закрываем все активные окна...")
+            if is_timeout:
+                print("______________________________________________________")
+                print("")
+                print("Внимание! Некоторые окна не были закрыты из-за ошибки!")
+                print("Возможно, программа не может получить доступ к окну.")
+                print("______________________________________________________")
         print_stars()
         print("Закрываем все активные окна...")
     print_stars()
@@ -320,10 +335,10 @@ def terminate_single_process():
 
         print("Укажите номер процесса для завершения")
         try:
-            raw = input()
-            print("DEBUG RAW:", repr(raw))
-            index = int(raw)
-            # index = int(input())
+            # raw = input()
+            # print("DEBUG RAW:", repr(raw))
+            # index = int(raw)
+            index = int(input())
             if index <= 0:
                 print("ОШИБКА: Неверный номер процесса!")
                 continue
