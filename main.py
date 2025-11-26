@@ -350,7 +350,49 @@ def terminate_single_process():
 
 def start_skipped_process():
     while True:
-        pass
+        path = FOLDER
+        exe = EXE
+        skip_mark = SKIP_MARK
+
+        folders_counter = len(next(os.walk(FOLDER))[1])
+        # print("Folder counter", folders_counter)
+        for i in range(1, folders_counter + 1):
+            index = str(i)
+            exe_path = os.path.join(path, index + skip_mark, exe)
+            if skip_mark in exe_path:
+                try:
+                    subprocess.Popen(exe_path)
+                except FileNotFoundError:
+                    continue
+
+        print_stars()
+        print("Запускаем исключенные процессы ...")
+        print_stars()
+        break
+
+
+def terminate_skipped_process():
+    while True:
+        process_found: bool = False
+        for proc in psutil.process_iter():
+            try:
+                path = proc.exe()
+                if FOLDER and SKIP_MARK in path:
+                    process_found = True
+                    if proc.is_running():
+                        proc.terminate()
+            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+                continue
+        if not process_found:
+            print_stars()
+            print("Процессы не запущены.")
+            print_stars()
+            break
+        else:
+            print_stars()
+            print("Исключенные процессы завершены.")
+            print_stars()
+            break
 
 
 def show_commands():
@@ -363,6 +405,8 @@ def show_commands():
     print("6. Закрыть все активные окна")
     print("7. Запустить выбранный процесс")
     print("8. Завершить выбранный процесс")
+    print("9. Запустить исключенные процессы")
+    print("10. Завершить исключенные процессы")
     print("0. Выход")
 
 
@@ -394,6 +438,12 @@ def input_command():
 
             case "8":
                 terminate_single_process()
+
+            case "9":
+                start_skipped_process()
+
+            case "10":
+                terminate_skipped_process()
 
             case "0":
                 sys.exit(0)
