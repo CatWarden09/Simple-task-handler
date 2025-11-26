@@ -5,7 +5,7 @@ import pywinauto as pw
 
 from dotenv import load_dotenv
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
@@ -61,7 +61,6 @@ def terminate_process():
         print_stars()
         print("Процессы не запущены.")
         print_stars()
-        break
     else:
         print_stars()
         print("Все процессы завершены.")
@@ -106,14 +105,14 @@ def list_process():
             old_process_path = os.path.join(
                 FOLDER, str(skipped_folders[i]), process_name
             )
-            print("Старый путь к процессу:", old_process_path)
+            # print("Старый путь к процессу:", old_process_path)
             old_folder_name: str = os.path.basename(os.path.dirname(old_process_path))
-            print("старое имя папки:", old_folder_name)
+            # print("старое имя папки:", old_folder_name)
 
             old_folder_name = old_folder_name.replace(str(SKIP_MARK), "")
 
             new_folder_name = int(old_folder_name)
-            print("новое имя папки:", new_folder_name)
+            # print("новое имя папки:", new_folder_name)
 
             new_skipped_folders.append(new_folder_name)
 
@@ -402,8 +401,8 @@ def terminate_skipped_process():
 
 def show_commands():
     print("Введите команду:")
-    print("1. Запустить все процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
-    print("2. Завершить все процессы")
+    print("1. Запустить процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
+    print("2. Завершить процессы")
     print("3. Запустить процессы выборочно")
     print("4. Завершить процессы выборочно")
     print("5. Показать список процессов")
