@@ -5,7 +5,7 @@ import pywinauto as pw
 
 from dotenv import load_dotenv
 
-VERSION = "0.2.2"
+VERSION = "0.3.1"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
@@ -24,6 +24,10 @@ def create_env_file():
     skip_mark_input = input()
     with open(env_path, "a", encoding="utf-8") as f:
         f.write("SKIP_MARK=" + str(skip_mark_input) + "\n")
+    print("Укажите название .exe-файла программы (например, Telegram.exe)")
+    proc_exe = input()
+    with open(env_path, "a", encoding="utf-8") as f:
+        f.write("EXE=" + str(proc_exe) + "\n")
 
 
 try:
@@ -34,6 +38,7 @@ except FileNotFoundError:
 load_dotenv()
 FOLDER = os.getenv("FOLDER")
 SKIP_MARK = os.getenv("SKIP_MARK")
+EXE = os.getenv("EXE")
 
 
 def print_stars():
@@ -69,7 +74,7 @@ def list_process():
     while True:
         process_counter: int = 0
         process_name_found: bool = False
-        process_name = "Telegram.exe"
+        process_name = EXE
         folders = []
         for proc in psutil.process_iter():
             try:
@@ -195,7 +200,7 @@ def select_process_start_range():
 def start_selected_process(range_start, range_end):
     while True:
         path = FOLDER
-        exe = "Telegram.exe"
+        exe = EXE
         start_range = []
         folders_counter = len(next(os.walk(FOLDER))[1])
 
@@ -223,7 +228,7 @@ def start_selected_process(range_start, range_end):
 def start_process():
     while True:
         path = FOLDER
-        exe = "Telegram.exe"
+        exe = EXE
 
         folders_counter = len(next(os.walk(FOLDER))[1])
         # print("Folder counter", folders_counter)
@@ -267,7 +272,7 @@ def close_all_windows():
 def start_single_process():
     while True:
         path = FOLDER
-        exe = "Telegram.exe"
+        exe = EXE
 
         print("Укажите номер процесса для запуска")
 
@@ -334,6 +339,11 @@ def terminate_single_process():
             print("Процесс под номером", index, "завершен")
             print_stars()
             break
+
+
+def start_skipped_process():
+    while True:
+        pass
 
 
 def show_commands():
