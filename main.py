@@ -19,7 +19,11 @@ def create_env_file():
     print("Укажите путь к папке с копиями программы")
     proc_folder = input()
     with open(env_path, "w", encoding="utf-8") as f:
-        f.write("FOLDER=" + str(proc_folder))
+        f.write("FOLDER=" + str(proc_folder) + "\n")
+    print("Укажите метку для папок-исключений")
+    skip_mark_input = input()
+    with open(env_path, "a", encoding="utf-8") as f:
+        f.write("SKIP_MARK=" + str(skip_mark_input) + "\n")
 
 
 try:
