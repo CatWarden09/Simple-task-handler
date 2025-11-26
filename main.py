@@ -6,7 +6,7 @@ import pywinauto as pw
 from dotenv import load_dotenv
 from pywinauto import timings
 
-VERSION = "0.2.3"
+VERSION = "0.3.2"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
@@ -20,7 +20,15 @@ def create_env_file():
     print("Укажите путь к папке с копиями программы")
     proc_folder = input()
     with open(env_path, "w", encoding="utf-8") as f:
-        f.write("FOLDER=" + str(proc_folder))
+        f.write("FOLDER=" + str(proc_folder) + "\n")
+    print("Укажите метку для папок-исключений")
+    skip_mark_input = input()
+    with open(env_path, "a", encoding="utf-8") as f:
+        f.write("SKIP_MARK=" + str(skip_mark_input) + "\n")
+    print("Укажите название .exe-файла программы (например, Telegram.exe)")
+    proc_exe = input()
+    with open(env_path, "a", encoding="utf-8") as f:
+        f.write("EXE=" + str(proc_exe) + "\n")
 
 
 try:
@@ -31,6 +39,7 @@ except FileNotFoundError:
 load_dotenv()
 FOLDER = os.getenv("FOLDER")
 SKIP_MARK = os.getenv("SKIP_MARK")
+EXE = os.getenv("EXE")
 
 
 def print_stars():
@@ -39,76 +48,96 @@ def print_stars():
 
 
 def terminate_process():
-    while True:
-        process_found: bool = False
-        for proc in psutil.process_iter():
-            try:
-                path = proc.exe()
-                if FOLDER in path:
-                    process_found = True
-                    if proc.is_running():
-                        proc.terminate()
-            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
-                continue
-        if not process_found:
-            print_stars()
-            print("Процессы не запущены.")
-            print_stars()
-            break
-        else:
-            print_stars()
-            print("Все процессы завершены.")
-            print_stars()
-            break
+    process_found: bool = False
+    for proc in psutil.process_iter():
+        try:
+            path = proc.exe()
+            if FOLDER in path:
+                process_found = True
+                if proc.is_running():
+                    proc.terminate()
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+            continue
+    if not process_found:
+        print_stars()
+        print("Процессы не запущены.")
+        print_stars()
+    else:
+        print_stars()
+        print("Все процессы завершены.")
+        print_stars()
 
 
 def list_process():
-    while True:
-        process_counter: int = 0
-        process_name_found: bool = False
-        process_name = "Telegram.exe"
-        folders = []
-        for proc in psutil.process_iter():
-            try:
-                path = proc.exe()
-                if FOLDER in path:
-                    # print(path)
-                    process_counter += 1
-                    folder_name = os.path.basename(os.path.dirname(path))
-                    if (
-                        SKIP_MARK in folder_name
-                    ):  # хотфикс для исключаемых папок, которые уже запущены, без этого условия программа падает,
-                        # т.к. не может перевести в int название папки (нужно вручную прописать ключ в env)
-                        continue
-                    folders.append(int(folder_name))
-                    if not process_name_found:
-                        process_name = proc.name()
-                        process_name_found = True
-                    else:
-                        continue
+    process_counter: int = 0
+    process_name_found: bool = False
+    process_name = EXE
+    folders = []
+    skipped_folders = []
+    for proc in psutil.process_iter():
+        try:
+            path = proc.exe()
+            if FOLDER in path:
+                # print(path)
+                process_counter += 1
+                folder_name = os.path.basename(os.path.dirname(path))
+                if SKIP_MARK in folder_name:
+                    # создаем отдельный массив для исключаемых папок, т.к. нельзя смешивать сортировку str и int
+                    skipped_folders.append(folder_name)
+                    continue
+                folders.append(int(folder_name))
+                # перевод в int нужен для последующей сортировки массива и красивого отображения списка процессов по возрастанию номеров
+                if not process_name_found:
+                    process_name = proc.name()
+                    process_name_found = True
+                else:
+                    continue
 
-            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
-                continue
-        if process_counter > 0:
-            print_stars()
-            print("Список запущенных процессов:")
-            folders.sort()
-            for k in range(len(folders)):
-                process_path = os.path.join(FOLDER, str(folders[k]), process_name)
-                print(process_path)
-            print_stars()
-            print("Запущено ", process_counter, process_name)
-            print_stars()
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+            continue
+    if process_counter > 0:
+        print_stars()
+        print("Список запущенных процессов:")
+        folders.sort()
 
-        else:
-            print_stars()
-            print("Процессы не запущены.")
-            print_stars()
-        process_counter = 0
+        new_skipped_folders = []
+        # создаем новый массив и добавляем туда индексы исключаемых папок для последующей сортировки
+        for i in range(len(skipped_folders)):
+            old_process_path = os.path.join(
+                FOLDER, str(skipped_folders[i]), process_name
+            )
+            # print("Старый путь к процессу:", old_process_path)
+            old_folder_name: str = os.path.basename(os.path.dirname(old_process_path))
+            # print("старое имя папки:", old_folder_name)
 
-        # print(folders)
+            old_folder_name = old_folder_name.replace(str(SKIP_MARK), "")
 
-        break
+            new_folder_name = int(old_folder_name)
+            # print("новое имя папки:", new_folder_name)
+
+            new_skipped_folders.append(new_folder_name)
+
+        new_skipped_folders.sort()
+        # нужно доработать сортировку для skipped-папок, сейчас не работает
+        for k in range(len(folders)):
+            process_path = os.path.join(FOLDER, str(folders[k]), process_name)
+            print(process_path)
+        for l in range(len(new_skipped_folders)):
+            process_path = os.path.join(
+                FOLDER, str(new_skipped_folders[l]) + SKIP_MARK, process_name
+            )
+            print(process_path)
+        print_stars()
+        print("Запущено ", process_counter, process_name)
+        print_stars()
+
+    else:
+        print_stars()
+        print("Процессы не запущены.")
+        print_stars()
+    process_counter = 0
+
+    # print(folders)
 
 
 def select_range_start():
@@ -192,7 +221,7 @@ def select_process_start_range():
 def start_selected_process(range_start, range_end):
     while True:
         path = FOLDER
-        exe = "Telegram.exe"
+        exe = EXE
         start_range = []
         folders_counter = len(next(os.walk(FOLDER))[1])
 
@@ -218,24 +247,22 @@ def start_selected_process(range_start, range_end):
 
 
 def start_process():
-    while True:
-        path = FOLDER
-        exe = "Telegram.exe"
+    path = FOLDER
+    exe = EXE
 
-        folders_counter = len(next(os.walk(FOLDER))[1])
-        # print("Folder counter", folders_counter)
-        for i in range(1, folders_counter + 1):
-            index = str(i)
-            exe_path = os.path.join(path, index, exe)
-            try:
-                subprocess.Popen(exe_path)
-            except FileNotFoundError:
-                continue
+    folders_counter = len(next(os.walk(FOLDER))[1])
+    # print("Folder counter", folders_counter)
+    for i in range(1, folders_counter + 1):
+        index = str(i)
+        exe_path = os.path.join(path, index, exe)
+        try:
+            subprocess.Popen(exe_path)
+        except FileNotFoundError:
+            continue
 
-        print_stars()
-        print("Запускаем все процессы...")
-        print_stars()
-        break
+    print_stars()
+    print("Запускаем все процессы...")
+    print_stars()
 
 
 def close_all_windows():
@@ -269,13 +296,14 @@ def close_all_windows():
                 print("Возможно, программа не может получить доступ к окну.")
                 print("______________________________________________________")
         print_stars()
-        break
+        print("Закрываем все активные окна...")
+    print_stars()
 
 
 def start_single_process():
     while True:
         path = FOLDER
-        exe = "Telegram.exe"
+        exe = EXE
 
         print("Укажите номер процесса для запуска")
 
@@ -344,16 +372,60 @@ def terminate_single_process():
             break
 
 
+def start_skipped_process():
+    path = FOLDER
+    exe = EXE
+    skip_mark = SKIP_MARK
+
+    folders_counter = len(next(os.walk(FOLDER))[1])
+    # print("Folder counter", folders_counter)
+    for i in range(1, folders_counter + 1):
+        index = str(i)
+        exe_path = os.path.join(path, index + skip_mark, exe)
+        if skip_mark in exe_path:
+            try:
+                subprocess.Popen(exe_path)
+            except FileNotFoundError:
+                continue
+
+    print_stars()
+    print("Запускаем исключенные процессы ...")
+    print_stars()
+
+
+def terminate_skipped_process():
+    process_found: bool = False
+    for proc in psutil.process_iter():
+        try:
+            path = proc.exe()
+            if FOLDER and SKIP_MARK in path:
+                process_found = True
+                if proc.is_running():
+                    proc.terminate()
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+            continue
+    if not process_found:
+        print_stars()
+        print("Процессы не запущены.")
+        print_stars()
+    else:
+        print_stars()
+        print("Исключенные процессы завершены.")
+        print_stars()
+
+
 def show_commands():
     print("Введите команду:")
-    print("1. Запустить все процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
-    print("2. Завершить все процессы")
+    print("1. Запустить процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
+    print("2. Завершить процессы")
     print("3. Запустить процессы выборочно")
     print("4. Завершить процессы выборочно")
     print("5. Показать список процессов")
     print("6. Закрыть все активные окна")
     print("7. Запустить выбранный процесс")
     print("8. Завершить выбранный процесс")
+    print("9. Запустить исключенные процессы")
+    print("10. Завершить исключенные процессы")
     print("0. Выход")
 
 
@@ -385,6 +457,12 @@ def input_command():
 
             case "8":
                 terminate_single_process()
+
+            case "9":
+                start_skipped_process()
+
+            case "10":
+                terminate_skipped_process()
 
             case "0":
                 sys.exit(0)
