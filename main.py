@@ -6,7 +6,7 @@ import pywinauto as pw
 from dotenv import load_dotenv
 from pywinauto import timings
 
-VERSION = "0.3.2"
+VERSION = "0.3.4"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
@@ -180,35 +180,32 @@ def select_process_termination_range():
 
 
 def terminate_selected_process(range_start, range_end):
-    while True:
-        process_found: bool = False
-        terminate_range = []
-        for i in range(range_start, range_end + 1):
-            terminate_range.append(i)
-        # print("Массив диапазона процессов:", terminate_range)
-        for proc in psutil.process_iter():
-            try:
-                path = proc.exe()
-                folder_name = os.path.basename(os.path.dirname(path))
-                if SKIP_MARK in folder_name:
-                    continue
-                if FOLDER in path and int(folder_name) in terminate_range:
-                    process_found = True
-                    if proc.is_running():
-                        proc.terminate()
-
-            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+    process_found: bool = False
+    terminate_range = []
+    for i in range(range_start, range_end + 1):
+        terminate_range.append(i)
+    # print("Массив диапазона процессов:", terminate_range)
+    for proc in psutil.process_iter():
+        try:
+            path = proc.exe()
+            folder_name = os.path.basename(os.path.dirname(path))
+            if SKIP_MARK in folder_name:
                 continue
-        if not process_found:
-            print_stars()
-            print("Процессы в указанном диапазоне не запущены.")
-            print_stars()
-            break
-        else:
-            print_stars()
-            print("Процессы в выбранном диапазоне завершены.")
-            print_stars()
-            break
+            if FOLDER in path and int(folder_name) in terminate_range:
+                process_found = True
+                if proc.is_running():
+                    proc.terminate()
+
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+            continue
+    if not process_found:
+        print_stars()
+        print("Процессы в указанном диапазоне не запущены.")
+        print_stars()
+    else:
+        print_stars()
+        print("Процессы в выбранном диапазоне завершены.")
+        print_stars()
 
 
 def select_process_start_range():
@@ -218,31 +215,29 @@ def select_process_start_range():
 
 
 def start_selected_process(range_start, range_end):
-    while True:
-        path = FOLDER
-        exe = EXE
-        start_range = []
-        folders_counter = len(next(os.walk(FOLDER))[1])
+    path = FOLDER
+    exe = EXE
+    start_range = []
+    folders_counter = len(next(os.walk(FOLDER))[1])
 
-        # print("Folder counter", folders_counter)
+    # print("Folder counter", folders_counter)
 
-        for i in range(range_start, range_end + 1):
-            start_range.append(i)
+    for i in range(range_start, range_end + 1):
+        start_range.append(i)
 
-        for k in range(1, folders_counter + 1):
-            index = str(k)
-            exe_path = os.path.join(path, index, exe)
-            folder_name = os.path.basename(os.path.dirname(exe_path))
-            try:
-                if int(folder_name) in start_range:
-                    subprocess.Popen(exe_path)
-            except FileNotFoundError:
-                continue
+    for k in range(1, folders_counter + 1):
+        index = str(k)
+        exe_path = os.path.join(path, index, exe)
+        folder_name = os.path.basename(os.path.dirname(exe_path))
+        try:
+            if int(folder_name) in start_range:
+                subprocess.Popen(exe_path)
+        except FileNotFoundError:
+            continue
 
-        print_stars()
-        print("Запускаем процессы в выбранном диапазоне...")
-        print_stars()
-        break
+    print_stars()
+    print("Запускаем процессы в выбранном диапазоне...")
+    print_stars()
 
 
 def start_process():
@@ -265,37 +260,36 @@ def start_process():
 
 
 def close_all_windows():
-    while True:
-        is_timeout: bool = False
-        apps = pw.Desktop(backend="win32").windows(
-            class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
-        )
-        # print(apps)
-        if len(apps) == 0:
-            print_stars()
-            print("Активные окна не найдены.")
+    is_timeout: bool = False
+    apps = pw.Desktop(backend="win32").windows(
+        class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
+    )
+    # print(apps)
+    if len(apps) == 0:
+        print_stars()
+        print("Активные окна не найдены.")
 
-        else:
-            for app in apps:
-                try:
-                    if app.is_visible():
-                        app.close()
-                except timings.TimeoutError:
-                    is_timeout = True
-                    continue
-                else:
-                    continue
+    else:
+        for app in apps:
+            try:
+                if app.is_visible():
+                    app.close()
+            except timings.TimeoutError:
+                is_timeout = True
+                continue
+            else:
+                continue
 
-            print_stars()
-            print("Закрываем все активные окна...")
-            if is_timeout:
-                print("______________________________________________________")
-                print("")
-                print("Внимание! Некоторые окна не были закрыты из-за ошибки!")
-                print("Возможно, программа не может получить доступ к окну.")
-                print("______________________________________________________")
         print_stars()
         print("Закрываем все активные окна...")
+        if is_timeout:
+            print("______________________________________________________")
+            print("")
+            print("Внимание! Некоторые окна не были закрыты из-за ошибки!")
+            print("Возможно, программа не может получить доступ к окну.")
+            print("______________________________________________________")
+    print_stars()
+    print("Закрываем все активные окна...")
     print_stars()
 
 
