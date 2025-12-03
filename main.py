@@ -338,21 +338,23 @@ def terminate_single_process():
                 continue
             else:
                 for proc in psutil.process_iter():
-                    try:
-                        path = proc.exe()
-                        folder_name = os.path.basename(os.path.dirname(path))
-                        # print(folder_name)
-                        if FOLDER in path and int(folder_name) == index:
-                            if proc.is_running():
-                                proc.terminate()
-                                process_found = True
-                    except (
-                        psutil.AccessDenied,
-                        psutil.NoSuchProcess,
-                        psutil.ZombieProcess,
-                        ValueError,
-                    ):
-                        continue
+                        try:                 
+                            path = proc.exe()
+                            folder_name = os.path.basename(os.path.dirname(path))
+                            folder_name = folder_name.replace(SKIP_MARK, "") if SKIP_MARK in folder_name else folder_name
+                            
+                            # print(folder_name)
+                            if FOLDER in path and int(folder_name) == index:
+                                if proc.is_running():
+                                    proc.terminate()
+                                    process_found = True
+                        except (
+                            psutil.AccessDenied,
+                            psutil.NoSuchProcess,
+                            psutil.ZombieProcess,
+                            ValueError,
+                        ):
+                            continue
         except ValueError:
             print("ОШИБКА: указанное значение не является числом!")
             continue
