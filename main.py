@@ -189,8 +189,13 @@ def terminate_selected_process(range_start, range_end):
         try:
             path = proc.exe()
             folder_name = os.path.basename(os.path.dirname(path))
-            if SKIP_MARK in folder_name:
-                continue
+
+            folder_name = (
+                folder_name.replace(SKIP_MARK, "")
+                if SKIP_MARK in folder_name
+                else folder_name
+            )
+
             if FOLDER in path and int(folder_name) in terminate_range:
                 process_found = True
                 if proc.is_running():
@@ -338,23 +343,28 @@ def terminate_single_process():
                 continue
             else:
                 for proc in psutil.process_iter():
-                        try:                 
-                            path = proc.exe()
-                            folder_name = os.path.basename(os.path.dirname(path))
-                            folder_name = folder_name.replace(SKIP_MARK, "") if SKIP_MARK in folder_name else folder_name
-                            
-                            # print(folder_name)
-                            if FOLDER in path and int(folder_name) == index:
-                                if proc.is_running():
-                                    proc.terminate()
-                                    process_found = True
-                        except (
-                            psutil.AccessDenied,
-                            psutil.NoSuchProcess,
-                            psutil.ZombieProcess,
-                            ValueError,
-                        ):
-                            continue
+                    try:
+                        path = proc.exe()
+                        folder_name = os.path.basename(os.path.dirname(path))
+                        folder_name = (
+                            folder_name.replace(SKIP_MARK, "")
+                            if SKIP_MARK in folder_name
+                            else folder_name
+                        )
+
+                        # print(folder_name)
+                        # перевод названия родительской папки в int здесь нужен для того, чтобы не закрывались все копии с определенной цифрой в названии
+                        if FOLDER in path and int(folder_name) == index:
+                            if proc.is_running():
+                                proc.terminate()
+                                process_found = True
+                    except (
+                        psutil.AccessDenied,
+                        psutil.NoSuchProcess,
+                        psutil.ZombieProcess,
+                        ValueError,
+                    ):
+                        continue
         except ValueError:
             print("ОШИБКА: указанное значение не является числом!")
             continue
