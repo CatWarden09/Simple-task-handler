@@ -218,19 +218,19 @@ def start_selected_process(range_start, range_end):
     path = FOLDER
     exe = EXE
     start_range = []
-    folders_counter = len(next(os.walk(FOLDER))[1])
+    folders = next(os.walk(path))[1]
 
-    # print("Folder counter", folders_counter)
+    print("Folder", folders)
 
     for i in range(range_start, range_end + 1):
         start_range.append(i)
 
-    for k in range(1, folders_counter + 1):
-        index = str(k)
-        exe_path = os.path.join(path, index, exe)
-        folder_name = os.path.basename(os.path.dirname(exe_path))
+    print("Start range:", start_range)
+
+    for folder in folders:
+        exe_path = os.path.join(path, folder, exe)
         try:
-            if int(folder_name) in start_range:
+            if not SKIP_MARK in folder and int(folder) in start_range:
                 subprocess.Popen(exe_path)
         except FileNotFoundError:
             continue
@@ -245,15 +245,15 @@ def start_process():
     exe = EXE
 
     folders = next(os.walk(FOLDER))[1]
-    print("Folder counter", folders)
+    # print("Folder counter", folders)
 
     for folder in folders:
-        if not SKIP_MARK in folder:
-            exe_path = os.path.join(path, folder, exe)
-            try:
+        exe_path = os.path.join(path, folder, exe)
+        try:
+            if not SKIP_MARK in folder:
                 subprocess.Popen(exe_path)
-            except FileNotFoundError:
-                continue
+        except FileNotFoundError:
+            continue
 
     print_stars()
     print("Запускаем все процессы...")
