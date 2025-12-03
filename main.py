@@ -134,7 +134,6 @@ def list_process():
         print_stars()
         print("Процессы не запущены.")
         print_stars()
-    process_counter = 0
 
     # print(folders)
 
@@ -381,7 +380,7 @@ def terminate_single_process():
 def start_skipped_process():
     path = FOLDER
     exe = EXE
-    skip_mark = SKIP_MARK
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
 
     folders = next(os.walk(FOLDER))[1]
 
@@ -389,7 +388,7 @@ def start_skipped_process():
 
     for folder in folders:
         exe_path = os.path.join(path, folder, exe)
-        if skip_mark in exe_path:
+        if SKIP_MARK in exe_path:
             try:
                 subprocess.Popen(exe_path)
             except FileNotFoundError:
@@ -401,11 +400,13 @@ def start_skipped_process():
 
 
 def terminate_skipped_process():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
     process_found: bool = False
     for proc in psutil.process_iter():
         try:
             path = proc.exe()
-            if FOLDER and SKIP_MARK in path:
+            if FOLDER in path and SKIP_MARK in path:
                 process_found = True
                 if proc.is_running():
                     proc.terminate()
@@ -413,15 +414,33 @@ def terminate_skipped_process():
             continue
     if not process_found:
         print_stars()
-        print(f"{SKIP_MARK}-процессы не запущены.")
+        print(f"{skip_mark}-процессы не запущены.")
         print_stars()
     else:
         print_stars()
-        print(f"{SKIP_MARK}-процессы завершены.")
+        print(f"{skip_mark}-процессы завершены.")
+        print_stars()
+
+
+def count_skipped_folder():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
+    skipped_counter = 0
+    folders = next(os.walk(FOLDER))[1]
+    for folder in folders:
+        if SKIP_MARK in folder:
+            skipped_counter += 1
+        else:
+            continue
+    else:
+        print_stars()
+        print(f"Количество {skip_mark}-папок: {skipped_counter}")
         print_stars()
 
 
 def show_commands():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
     print("Введите команду:")
     print("1. Запустить процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
     print("2. Завершить процессы")
@@ -431,8 +450,9 @@ def show_commands():
     print("6. Закрыть все активные окна")
     print("7. Запустить выбранный процесс")
     print("8. Завершить выбранный процесс")
-    print("9. Запустить исключенные процессы")
-    print("10. Завершить исключенные процессы")
+    print(f"9. Запустить {skip_mark}-процессы")
+    print(f"10. Завершить {skip_mark}-процессы")
+    print(f"11. Посчитать {skip_mark}-папки")
     print("0. Выход")
 
 
@@ -470,6 +490,9 @@ def input_command():
 
             case "10":
                 terminate_skipped_process()
+
+            case "11":
+                count_skipped_folder()
 
             case "0":
                 sys.exit(0)
