@@ -220,12 +220,12 @@ def start_selected_process(range_start, range_end):
     start_range = []
     folders = next(os.walk(path))[1]
 
-    print("Folder", folders)
+    # print("Folder", folders)
 
     for i in range(range_start, range_end + 1):
         start_range.append(i)
 
-    print("Start range:", start_range)
+    # print("Start range:", start_range)
 
     for folder in folders:
         exe_path = os.path.join(path, folder, exe)
@@ -371,11 +371,12 @@ def start_skipped_process():
     exe = EXE
     skip_mark = SKIP_MARK
 
-    folders_counter = len(next(os.walk(FOLDER))[1])
-    # print("Folder counter", folders_counter)
-    for i in range(1, folders_counter + 1):
-        index = str(i)
-        exe_path = os.path.join(path, index + skip_mark, exe)
+    folders = next(os.walk(FOLDER))[1]
+
+    # print("Folders", folders)
+
+    for folder in folders:
+        exe_path = os.path.join(path, folder, exe)
         if skip_mark in exe_path:
             try:
                 subprocess.Popen(exe_path)
@@ -383,7 +384,7 @@ def start_skipped_process():
                 continue
 
     print_stars()
-    print("Запускаем исключенные процессы ...")
+    print(f"Запускаем {skip_mark}-процессы ...")
     print_stars()
 
 
@@ -400,11 +401,11 @@ def terminate_skipped_process():
             continue
     if not process_found:
         print_stars()
-        print("Процессы не запущены.")
+        print(f"{SKIP_MARK}-процессы не запущены.")
         print_stars()
     else:
         print_stars()
-        print("Исключенные процессы завершены.")
+        print(f"{SKIP_MARK}-процессы завершены.")
         print_stars()
 
 
