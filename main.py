@@ -244,15 +244,16 @@ def start_process():
     path = FOLDER
     exe = EXE
 
-    folders_counter = len(next(os.walk(FOLDER))[1])
-    # print("Folder counter", folders_counter)
-    for i in range(1, folders_counter + 1):
-        index = str(i)
-        exe_path = os.path.join(path, index, exe)
-        try:
-            subprocess.Popen(exe_path)
-        except FileNotFoundError:
-            continue
+    folders = next(os.walk(FOLDER))[1]
+    print("Folder counter", folders)
+
+    for folder in folders:
+        if not SKIP_MARK in folder:
+            exe_path = os.path.join(path, folder, exe)
+            try:
+                subprocess.Popen(exe_path)
+            except FileNotFoundError:
+                continue
 
     print_stars()
     print("Запускаем все процессы...")
