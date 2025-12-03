@@ -6,7 +6,7 @@ import pywinauto as pw
 from dotenv import load_dotenv
 from pywinauto import timings
 
-VERSION = "0.3.4"
+VERSION = "0.4.1"
 
 if getattr(sys, "frozen", False):
     script_dir = os.path.dirname(sys.executable)  # for exe version
@@ -134,7 +134,6 @@ def list_process():
         print_stars()
         print("Процессы не запущены.")
         print_stars()
-    process_counter = 0
 
     # print(folders)
 
@@ -189,8 +188,13 @@ def terminate_selected_process(range_start, range_end):
         try:
             path = proc.exe()
             folder_name = os.path.basename(os.path.dirname(path))
-            if SKIP_MARK in folder_name:
-                continue
+
+            folder_name = (
+                folder_name.replace(SKIP_MARK, "")
+                if SKIP_MARK in folder_name
+                else folder_name
+            )
+
             if FOLDER in path and int(folder_name) in terminate_range:
                 process_found = True
                 if proc.is_running():
@@ -218,19 +222,19 @@ def start_selected_process(range_start, range_end):
     path = FOLDER
     exe = EXE
     start_range = []
-    folders_counter = len(next(os.walk(FOLDER))[1])
+    folders = next(os.walk(path))[1]
 
-    # print("Folder counter", folders_counter)
+    # print("Folder", folders)
 
     for i in range(range_start, range_end + 1):
         start_range.append(i)
 
-    for k in range(1, folders_counter + 1):
-        index = str(k)
-        exe_path = os.path.join(path, index, exe)
-        folder_name = os.path.basename(os.path.dirname(exe_path))
+    # print("Start range:", start_range)
+
+    for folder in folders:
+        exe_path = os.path.join(path, folder, exe)
         try:
-            if int(folder_name) in start_range:
+            if not SKIP_MARK in folder and int(folder) in start_range:
                 subprocess.Popen(exe_path)
         except FileNotFoundError:
             continue
@@ -244,13 +248,14 @@ def start_process():
     path = FOLDER
     exe = EXE
 
-    folders_counter = len(next(os.walk(FOLDER))[1])
-    # print("Folder counter", folders_counter)
-    for i in range(1, folders_counter + 1):
-        index = str(i)
-        exe_path = os.path.join(path, index, exe)
+    folders = next(os.walk(FOLDER))[1]
+    # print("Folder counter", folders)
+
+    for folder in folders:
+        exe_path = os.path.join(path, folder, exe)
         try:
-            subprocess.Popen(exe_path)
+            if not SKIP_MARK in folder:
+                subprocess.Popen(exe_path)
         except FileNotFoundError:
             continue
 
@@ -340,7 +345,14 @@ def terminate_single_process():
                     try:
                         path = proc.exe()
                         folder_name = os.path.basename(os.path.dirname(path))
+                        folder_name = (
+                            folder_name.replace(SKIP_MARK, "")
+                            if SKIP_MARK in folder_name
+                            else folder_name
+                        )
+
                         # print(folder_name)
+                        # перевод названия родительской папки в int здесь нужен для того, чтобы не закрывались все копии с определенной цифрой в названии
                         if FOLDER in path and int(folder_name) == index:
                             if proc.is_running():
                                 proc.terminate()
@@ -368,30 +380,33 @@ def terminate_single_process():
 def start_skipped_process():
     path = FOLDER
     exe = EXE
-    skip_mark = SKIP_MARK
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
 
-    folders_counter = len(next(os.walk(FOLDER))[1])
-    # print("Folder counter", folders_counter)
-    for i in range(1, folders_counter + 1):
-        index = str(i)
-        exe_path = os.path.join(path, index + skip_mark, exe)
-        if skip_mark in exe_path:
+    folders = next(os.walk(FOLDER))[1]
+
+    # print("Folders", folders)
+
+    for folder in folders:
+        exe_path = os.path.join(path, folder, exe)
+        if SKIP_MARK in exe_path:
             try:
                 subprocess.Popen(exe_path)
             except FileNotFoundError:
                 continue
 
     print_stars()
-    print("Запускаем исключенные процессы ...")
+    print(f"Запускаем {skip_mark}-процессы ...")
     print_stars()
 
 
 def terminate_skipped_process():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
     process_found: bool = False
     for proc in psutil.process_iter():
         try:
             path = proc.exe()
-            if FOLDER and SKIP_MARK in path:
+            if FOLDER in path and SKIP_MARK in path:
                 process_found = True
                 if proc.is_running():
                     proc.terminate()
@@ -399,15 +414,33 @@ def terminate_skipped_process():
             continue
     if not process_found:
         print_stars()
-        print("Процессы не запущены.")
+        print(f"{skip_mark}-процессы не запущены.")
         print_stars()
     else:
         print_stars()
-        print("Исключенные процессы завершены.")
+        print(f"{skip_mark}-процессы завершены.")
+        print_stars()
+
+
+def count_skipped_folder():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
+    skipped_counter = 0
+    folders = next(os.walk(FOLDER))[1]
+    for folder in folders:
+        if SKIP_MARK in folder:
+            skipped_counter += 1
+        else:
+            continue
+    else:
+        print_stars()
+        print(f"Количество {skip_mark}-папок: {skipped_counter}")
         print_stars()
 
 
 def show_commands():
+    skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+
     print("Введите команду:")
     print("1. Запустить процессы. ВНИМАНИЕ! УЧИТЫВАЙТЕ ХАРАКТЕРИСТИКИ СВОЕГО ПК!")
     print("2. Завершить процессы")
@@ -417,8 +450,9 @@ def show_commands():
     print("6. Закрыть все активные окна")
     print("7. Запустить выбранный процесс")
     print("8. Завершить выбранный процесс")
-    print("9. Запустить исключенные процессы")
-    print("10. Завершить исключенные процессы")
+    print(f"9. Запустить {skip_mark}-процессы")
+    print(f"10. Завершить {skip_mark}-процессы")
+    print(f"11. Посчитать {skip_mark}-папки")
     print("0. Выход")
 
 
@@ -456,6 +490,9 @@ def input_command():
 
             case "10":
                 terminate_skipped_process()
+
+            case "11":
+                count_skipped_folder()
 
             case "0":
                 sys.exit(0)
