@@ -102,18 +102,11 @@ def list_process():
 
         new_skipped_folders = []
         # создаем новый массив и добавляем туда индексы исключаемых папок для последующей сортировки
-        for i in range(len(skipped_folders)):
-            old_process_path = os.path.join(
-                FOLDER, str(skipped_folders[i]), process_name
-            )
-            # print("Старый путь к процессу:", old_process_path)
-            old_folder_name: str = os.path.basename(os.path.dirname(old_process_path))
-            # print("старое имя папки:", old_folder_name)
+        for fold in skipped_folders:
 
-            old_folder_name = old_folder_name.replace(str(SKIP_MARK), "")
+            cleared_folder_name = fold.replace(str(SKIP_MARK), "")
 
-            new_folder_name = int(old_folder_name)
-            # print("новое имя папки:", new_folder_name)
+            new_folder_name = int(cleared_folder_name)
 
             new_skipped_folders.append(new_folder_name)
 
@@ -134,8 +127,6 @@ def list_process():
         print_stars()
         print("Процессы не запущены.")
         print_stars()
-
-    # print(folders)
 
 
 def select_range_start():
@@ -183,7 +174,7 @@ def terminate_selected_process(range_start, range_end):
     terminate_range = []
     for i in range(range_start, range_end + 1):
         terminate_range.append(i)
-    # print("Массив диапазона процессов:", terminate_range)
+
     for proc in psutil.process_iter():
         try:
             path = proc.exe()
@@ -224,12 +215,8 @@ def start_selected_process(range_start, range_end):
     start_range = []
     folders = next(os.walk(path))[1]
 
-    # print("Folder", folders)
-
     for i in range(range_start, range_end + 1):
         start_range.append(i)
-
-    # print("Start range:", start_range)
 
     for folder in folders:
         exe_path = os.path.join(path, folder, exe)
@@ -249,7 +236,6 @@ def start_process():
     exe = EXE
 
     folders = next(os.walk(FOLDER))[1]
-    # print("Folder counter", folders)
 
     for folder in folders:
         exe_path = os.path.join(path, folder, exe)
@@ -269,7 +255,7 @@ def close_all_windows():
     apps = pw.Desktop(backend="win32").windows(
         class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
     )
-    # print(apps)
+
     if len(apps) == 0:
         print_stars()
         print("Активные окна не найдены.")
@@ -312,7 +298,7 @@ def start_single_process():
                 continue
             else:
                 exe_path = os.path.join(path, str(index), exe)
-                # print(exe_path)
+
                 subprocess.Popen(exe_path)
                 print_stars()
                 print("Запускаем процесс под номером ", index, "...", sep="")
@@ -333,9 +319,7 @@ def terminate_single_process():
 
         print("Укажите номер процесса для завершения")
         try:
-            # raw = input()
-            # print("DEBUG RAW:", repr(raw))
-            # index = int(raw)
+
             index = int(input())
             if index <= 0:
                 print("ОШИБКА: Неверный номер процесса!")
@@ -351,8 +335,7 @@ def terminate_single_process():
                             else folder_name
                         )
 
-                        # print(folder_name)
-                        # перевод названия родительской папки в int здесь нужен для того, чтобы не закрывались все копии с определенной цифрой в названии
+                        # перевод названия родительской папки в int здесь нужен для того, чтобы не закрывались все копии с определенным числом в названии (например, 1 для 11)
                         if FOLDER in path and int(folder_name) == index:
                             if proc.is_running():
                                 proc.terminate()
@@ -383,8 +366,6 @@ def start_skipped_process():
     skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
 
     folders = next(os.walk(FOLDER))[1]
-
-    # print("Folders", folders)
 
     for folder in folders:
         exe_path = os.path.join(path, folder, exe)
