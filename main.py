@@ -364,6 +364,7 @@ def start_skipped_process():
     path = FOLDER
     exe = EXE
     skip_mark = SKIP_MARK.replace("(", "").replace(")", "")
+    process_found = False
 
     folders = next(os.walk(FOLDER))[1]
 
@@ -372,12 +373,17 @@ def start_skipped_process():
         if SKIP_MARK in exe_path:
             try:
                 subprocess.Popen(exe_path)
+                process_found = True
             except FileNotFoundError:
                 continue
-
-    print_stars()
-    print(f"Запускаем {skip_mark}-процессы ...")
-    print_stars()
+    if process_found:
+        print_stars()
+        print(f"Запускаем {skip_mark}-процессы ...")
+        print_stars()
+    else:
+        print_stars()
+        print(f"{skip_mark}-процессы не найдены.")
+        print_stars()
 
 
 def terminate_skipped_process():
