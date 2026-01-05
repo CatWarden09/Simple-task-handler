@@ -252,16 +252,19 @@ def start_process():
 
 def close_all_windows():
     is_timeout: bool = False
-    apps = pw.Desktop(backend="win32").windows(
-        class_name="Qt51517QWindowIcon", visible_only=True, top_level_only=True
-    )
+    apps = pw.Desktop(backend="win32").windows(visible_only=True, top_level_only=True)
+    filtered_apps = [
+        app
+        for app in apps
+        if app.element_info.class_name in ("Qt51517QWindowIcon", "Qt51518QWindowIcon")
+    ]
 
-    if len(apps) == 0:
+    if len(filtered_apps) == 0:
         print_stars()
         print("Активные окна не найдены.")
 
     else:
-        for app in apps:
+        for app in filtered_apps:
             try:
                 if app.is_visible():
                     app.close()
